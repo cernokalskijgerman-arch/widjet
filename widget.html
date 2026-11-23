@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Nothing Phone 2x1 Widget</title>
+  <style>
+    :root {
+      --nothing-red: #D71921;
+      --glass-bg: rgba(22, 22, 26, 0.75);
+      --glass-rim-1: rgba(255, 255, 255, 0.50);
+      --glass-rim-2: rgba(255, 255, 255, 0.06);
+      --glass-rim-3: rgba(255, 255, 255, 0.22);
+      --font-sys: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', system-ui, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: transparent;
+      font-family: var(--font-sys);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+    }
+
+    /* 2x1 Liquid Glass Card */
+    .widget-card {
+      width: 100%;
+      height: 100%;
+      max-height: 82px;
+      border-radius: 22px;
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      isolation: isolate;
+      background: var(--glass-bg);
+      -webkit-backdrop-filter: saturate(185%) blur(26px);
+      backdrop-filter: saturate(185%) blur(26px);
+      box-shadow:
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.25),
+        inset 0 0 0 0.5px rgba(255, 255, 255, 0.07),
+        0 8px 24px rgba(0, 0, 0, 0.45);
+    }
+
+    /* Specular Sheen (Apple Liquid Glass) */
+    .widget-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      border-radius: inherit;
+      pointer-events: none;
+      background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.18) 0%,
+        rgba(255, 255, 255, 0.03) 32%,
+        transparent 65%
+      );
+    }
+
+    /* Refraction Rim: 1px gradient bevel mask */
+    .widget-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      border-radius: inherit;
+      padding: 1px;
+      pointer-events: none;
+      background: linear-gradient(135deg, var(--glass-rim-1) 0%, var(--glass-rim-2) 45%, var(--glass-rim-3) 100%);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+    }
+
+    /* Top Row: Subject & Room */
+    .top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      width: 100%;
+    }
+
+    .subject-wrap {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      min-width: 0;
+    }
+
+    .status-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.25);
+      flex-shrink: 0;
+      transition: background 0.3s ease;
+    }
+
+    .status-dot.active-break {
+      background: var(--nothing-red);
+      box-shadow: 0 0 7px var(--nothing-red);
+      animation: pulse-dot 1.8s infinite ease-in-out;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.35; transform: scale(0.85); }
+    }
+
+    .subject-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #f6f6f8;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      letter-spacing: -0.01em;
+    }
+
+    .room-tag {
+      font-size: 9px;
+      font-weight: 600;
+      color: #9b9ba1;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 1px 5px;
+      border-radius: 5px;
+      flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Bottom Row: Time Start – End */
+    .bottom-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    .time-wrap {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      font-variant-numeric: tabular-nums;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .time-sep {
+      color: #636366;
+      font-weight: 400;
+      font-size: 12px;
+    }
+
+    .break-badge {
+      font-size: 8px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--nothing-red);
+      display: none;
+    }
+
+    .break-badge.show {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="widget-card">
+    <!-- Top: Subject & Room -->
+    <div class="top-row">
+      <div class="subject-wrap">
+        <span class="status-dot" id="dot"></span>
+        <span class="subject-title" id="subject">Загрузка...</span>
+      </div>
+      <span class="room-tag" id="room">...</span>
+    </div>
+
+    <!-- Bottom: Time Range -->
+    <div class="bottom-row">
+      <div class="time-wrap">
+        <span id="start">00:00</span>
+        <span class="time-sep">–</span>
+        <span id="end">00:00</span>
+      </div>
+      <span class="break-badge" id="breakBadge">СЛЕД</span>
+    </div>
+  </div>
+
+  <script>
+    const SCHEDULE = {
+      1: [ // Пн
+        { subject: "Физика", room: "0228", start: "09:00", end: "09:40" },
+        { subject: "История", room: "0332", start: "10:00", end: "10:40" },
+        { subject: "Алгебра", room: "0325", start: "11:00", end: "11:40" },
+        { subject: "Инд. проект", room: "0105", start: "12:00", end: "12:40" },
+        { subject: "Русский язык", room: "0235", start: "12:50", end: "13:30" },
+        { subject: "ОБЗР", room: "0321", start: "13:40", end: "14:20" },
+        { subject: "Геометрия", room: "0325", start: "14:40", end: "15:20" }
+      ],
+      2: [ // Вт
+        { subject: "Биология", room: "0220", start: "08:00", end: "08:40" },
+        { subject: "Русский язык", room: "0235", start: "09:00", end: "09:40" },
+        { subject: "Английский", room: "0110/0210", start: "10:00", end: "10:40" },
+        { subject: "Литература", room: "0235", start: "11:00", end: "11:40" },
+        { subject: "Обществознание", room: "0330", start: "12:00", end: "12:40" },
+        { subject: "Геометрия", room: "0325", start: "12:50", end: "13:30" },
+        { subject: "География", room: "0334", start: "13:40", end: "14:20" }
+      ],
+      3: [ // Ср
+        { subject: "Информатика", room: "0212/0313", start: "08:00", end: "08:40" },
+        { subject: "Информатика", room: "0212/0313", start: "09:00", end: "09:40" },
+        { subject: "Физкультура", room: "Б. Зал", start: "10:00", end: "10:40" },
+        { subject: "Обществознание", room: "0330", start: "11:00", end: "11:40" },
+        { subject: "Вер. и стат.", room: "0325", start: "12:00", end: "12:40" },
+        { subject: "Алгебра", room: "0325", start: "12:50", end: "13:30" }
+      ],
+      4: [ // Чт
+        { subject: "Литература", room: "0235", start: "08:00", end: "08:40" },
+        { subject: "Практ. русский", room: "0235", start: "09:00", end: "09:40" },
+        { subject: "Физкультура", room: "Гимн. зал", start: "10:00", end: "10:40" },
+        { subject: "Физика", room: "0228", start: "11:00", end: "11:40" },
+        { subject: "Английский", room: "0110/0210", start: "12:00", end: "12:40" },
+        { subject: "Алгебра", room: "0325", start: "12:50", end: "13:30" },
+        { subject: "Химия", room: "0319", start: "13:40", end: "14:20" }
+      ],
+      5: [ // Пт
+        { subject: "Информатика", room: "0212/0313", start: "08:00", end: "08:40" },
+        { subject: "Информатика", room: "0212/0313", start: "09:00", end: "09:40" },
+        { subject: "Алгебра", room: "0325", start: "10:00", end: "10:40" },
+        { subject: "История", room: "0332", start: "11:00", end: "11:40" },
+        { subject: "Английский", room: "0110/0210", start: "12:00", end: "12:40" },
+        { subject: "Геометрия", room: "0325", start: "12:50", end: "13:30" },
+        { subject: "Литература", room: "0235", start: "13:40", end: "14:20" }
+      ]
+    };
+
+    function parseMin(t) {
+      const [h, m] = t.split(':').map(Number);
+      return h * 60 + m;
+    }
+
+    function tick() {
+      const now = new Date();
+      let d = now.getDay();
+      if (d === 0 || d === 6) d = 1; // Default weekend to Monday
+
+      const currentMins = now.getHours() * 60 + now.getMinutes();
+      const dayList = SCHEDULE[d] || SCHEDULE[1];
+
+      const first = dayList[0];
+      const last = dayList[dayList.length - 1];
+      const fStart = parseMin(first.start);
+      const lEnd = parseMin(last.end);
+
+      let subject = "";
+      let room = "";
+      let start = "";
+      let end = "";
+      let isBreak = false;
+
+      if (currentMins < fStart) {
+        // Before 1st lesson
+        subject = first.subject;
+        room = first.room;
+        start = first.start;
+        end = first.end;
+        isBreak = true;
+      } else if (currentMins >= lEnd) {
+        // After school
+        const nextDay = (d % 5) + 1;
+        const nextFirst = SCHEDULE[nextDay][0];
+        subject = "Уроки окончены";
+        room = nextFirst.room;
+        start = nextFirst.start;
+        end = nextFirst.end;
+        isBreak = false;
+      } else {
+        // Inside school hours
+        for (let i = 0; i < dayList.length; i++) {
+          const cur = dayList[i];
+          const cStart = parseMin(cur.start);
+          const cEnd = parseMin(cur.end);
+
+          if (currentMins >= cStart && currentMins < cEnd) {
+            // Inside lesson
+            subject = cur.subject;
+            room = cur.room;
+            start = cur.start;
+            end = cur.end;
+            isBreak = false;
+            break;
+          }
+
+          const next = dayList[i + 1];
+          if (next && currentMins >= cEnd && currentMins < parseMin(next.start)) {
+            // ON BREAK: Immediately show NEXT lesson!
+            subject = next.subject;
+            room = next.room;
+            start = next.start;
+            end = next.end;
+            isBreak = true;
+            break;
+          }
+        }
+      }
+
+      document.getElementById('subject').textContent = subject;
+      document.getElementById('room').textContent = room;
+      document.getElementById('start').textContent = start;
+      document.getElementById('end').textContent = end;
+
+      const dot = document.getElementById('dot');
+      const badge = document.getElementById('breakBadge');
+
+      if (isBreak) {
+        dot.className = 'status-dot active-break';
+        badge.className = 'break-badge show';
+      } else {
+        dot.className = 'status-dot';
+        badge.className = 'break-badge';
+      }
+    }
+
+    setInterval(tick, 1000);
+    tick();
+  </script>
+</body>
+</html>

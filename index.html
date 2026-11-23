@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Nothing Phone (3a) Pro — 2x1 Minimal Schedule Widget</title>
+  <style>
+    /* ==========================================================================
+       Apple Liquid Glass Design Language (Tokens from liquid-glass-skill)
+       Adapted for Nothing OS 2x1 Grid Widget
+       ========================================================================== */
+    :root {
+      --ground: #0a0a0c;
+      --surface: #141418;
+      --label: #f6f6f8;
+      --label-2: #8e8e93;
+      --label-3: #58585e;
+      --separator: rgba(255, 255, 255, 0.08);
+
+      /* Nothing Signature Red (Rationed single tint) */
+      --nothing-red: #D71921;
+      --nothing-red-glow: rgba(215, 25, 33, 0.35);
+      --nothing-red-soft: rgba(215, 25, 33, 0.16);
+
+      /* Liquid Glass Primitive */
+      --glass: rgba(26, 26, 30, 0.68);
+      --glass-thick: rgba(20, 20, 24, 0.95);
+      --glass-rim: rgba(255, 255, 255, 0.22);
+      --glass-rim-2: rgba(255, 255, 255, 0.06);
+      --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.4);
+      --glass-blur: saturate(185%) blur(26px);
+      --glass-sheen: 0.18;
+
+      --rim-1: rgba(255, 255, 255, 0.48);
+      --rim-2: rgba(255, 255, 255, 0.06);
+      --rim-3: rgba(255, 255, 255, 0.22);
+
+      --r-2x1: 24px;
+      --font-sys: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', system-ui, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: radial-gradient(circle at 50% 20%, #171113 0%, var(--ground) 70%);
+      color: var(--label);
+      font-family: var(--font-sys);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 24px 16px 40px;
+    }
+
+    /* Subtle Nothing Grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: 
+        radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+      background-size: 22px 22px;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .header-bar {
+      width: 100%;
+      max-width: 380px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      padding: 0 4px;
+    }
+
+    .brand-tag {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--label-2);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .nothing-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--nothing-red);
+      box-shadow: 0 0 8px var(--nothing-red);
+      animation: pulse-dot 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .clock-pill {
+      font-size: 12px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      color: var(--label);
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 999px;
+      padding: 3px 10px;
+      border: 0.5px solid var(--separator);
+    }
+
+    /* ==========================================================================
+       Nothing OS Home Screen Simulation (2 App Slots Width)
+       ========================================================================== */
+    .phone-grid-preview {
+      width: 100%;
+      max-width: 360px;
+      background: rgba(14, 14, 18, 0.5);
+      border: 0.5px solid var(--separator);
+      border-radius: 36px;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+      margin-bottom: 24px;
+    }
+
+    .grid-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--label-3);
+      text-align: center;
+    }
+
+    .mock-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      width: 100%;
+    }
+
+    /* Mock App Icon (for scale comparison) */
+    .mock-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 0.5px solid var(--separator);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      color: var(--label-3);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+
+    .mock-icon-glyph {
+      width: 24px;
+      height: 24px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 0.5px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* ==========================================================================
+       The 2x1 Widget Itself (Exact size of 2 app icon slots)
+       ========================================================================== */
+    .widget-2x1 {
+      width: 160px;
+      height: 72px;
+      border-radius: var(--r-2x1);
+      padding: 10px 13px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      position: relative;
+      isolation: isolate;
+      background: var(--glass);
+      -webkit-backdrop-filter: var(--glass-blur);
+      backdrop-filter: var(--glass-blur);
+      box-shadow:
+        inset 0 0.5px 0 var(--glass-rim),
+        inset 0 0 0 0.5px var(--glass-rim-2),
+        var(--glass-shadow);
+      transition: transform 0.15s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .widget-2x1:active {
+      transform: scale(0.97);
+    }
+
+    /* Liquid Glass Specular Sheen (top light catch) */
+    .widget-2x1::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      border-radius: inherit;
+      pointer-events: none;
+      background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, var(--glass-sheen)) 0%,
+        rgba(255, 255, 255, calc(var(--glass-sheen) * 0.15)) 32%,
+        transparent 65%
+      );
+    }
+
+    /* Refraction Rim: 1px gradient bevel mask */
+    .widget-2x1::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      border-radius: inherit;
+      padding: 1px;
+      pointer-events: none;
+      background: linear-gradient(135deg, var(--rim-1) 0%, var(--rim-2) 45%, var(--rim-3) 100%);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+    }
+
+    /* Fallback for no backdrop-filter */
+    @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+      .widget-2x1 {
+        background: var(--glass-thick);
+      }
+    }
+
+    /* Top Row of 2x1 Widget: Subject & Room */
+    .widget-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      width: 100%;
+    }
+
+    .subject-box {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .status-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      flex-shrink: 0;
+      transition: background 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    /* On break, the dot lights up in Nothing Red */
+    .status-dot.break-active {
+      background: var(--nothing-red);
+      box-shadow: 0 0 7px var(--nothing-red);
+      animation: pulse-dot 1.8s infinite ease-in-out;
+    }
+
+    .subject-text {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--label);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      letter-spacing: -0.01em;
+    }
+
+    .room-badge {
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--label-2);
+      background: rgba(255, 255, 255, 0.08);
+      padding: 1px 5px;
+      border-radius: 5px;
+      flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Bottom Row: Time start - Time end */
+    .widget-bottom-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    .time-range {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      font-variant-numeric: tabular-nums;
+      color: var(--label);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .time-sep {
+      color: var(--label-3);
+      font-weight: 500;
+      font-size: 13px;
+    }
+
+    .break-indicator {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--nothing-red);
+      display: none;
+    }
+
+    .break-indicator.show {
+      display: block;
+    }
+
+    /* Scale-up Option for Desktop Inspection */
+    .scale-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--label-3);
+    }
+
+    /* ==========================================================================
+       Interactive Time & Day Simulator
+       ========================================================================== */
+    .sim-panel {
+      width: 100%;
+      max-width: 360px;
+      border-radius: 20px;
+      padding: 16px;
+      background: rgba(18, 18, 22, 0.7);
+      border: 0.5px solid var(--separator);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .sim-header {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--label-3);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .day-chips {
+      display: flex;
+      gap: 5px;
+      width: 100%;
+    }
+
+    .day-chip {
+      flex: 1;
+      padding: 6px 0;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 0.5px solid var(--separator);
+      color: var(--label-2);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+    }
+
+    .day-chip.active {
+      background: var(--nothing-red);
+      color: #fff;
+      border-color: var(--nothing-red);
+      box-shadow: 0 0 10px var(--nothing-red-glow);
+    }
+
+    .preset-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .preset-chip {
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 0.5px solid var(--separator);
+      color: var(--label-2);
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .preset-chip:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .preset-chip.active {
+      background: rgba(215, 25, 33, 0.2);
+      color: var(--nothing-red);
+      border-color: var(--nothing-red);
+    }
+
+    .slider-box {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .slider-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--label-2);
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 2px;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--nothing-red);
+      cursor: pointer;
+      box-shadow: 0 0 8px var(--nothing-red);
+    }
+
+    .current-status-card {
+      padding: 8px 10px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      font-size: 11px;
+      color: var(--label-2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .guide-footer {
+      max-width: 360px;
+      font-size: 10px;
+      color: var(--label-3);
+      text-align: center;
+      line-height: 1.5;
+      margin-top: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header-bar">
+    <div class="brand-tag">
+      <span class="nothing-dot"></span>
+      <span>Nothing (3a) Pro • 2x1 Widget</span>
+    </div>
+    <div class="clock-pill" id="clockReadout">--:--</div>
+  </div>
+
+  <!-- Nothing OS Home Screen Preview (Scale 1:1) -->
+  <div class="phone-grid-preview">
+    <div class="grid-label">Сетка экрана: виджет на 2 позиции (2×1)</div>
+
+    <!-- First row: Mock Icon + Widget (Takes 2 icon slots) + Mock Icon -->
+    <div class="mock-row">
+      <div class="mock-icon">
+        <div class="mock-icon-glyph"></div>
+        <span>Камера</span>
+      </div>
+
+      <!-- THE 2x1 WIDGET -->
+      <div class="widget-2x1" id="widgetElement" title="Нажмите для проверки">
+        <div class="widget-top-row">
+          <div class="subject-box">
+            <span class="status-dot break-active" id="widgetDot"></span>
+            <span class="subject-text" id="widgetSubject">Физика</span>
+          </div>
+          <span class="room-badge" id="widgetRoom">0228</span>
+        </div>
+
+        <div class="widget-bottom-row">
+          <div class="time-range">
+            <span id="widgetStart">09:00</span>
+            <span class="time-sep">–</span>
+            <span id="widgetEnd">09:40</span>
+          </div>
+          <span class="break-indicator show" id="widgetBreakTag">СЛЕД</span>
+        </div>
+      </div>
+
+      <div class="mock-icon">
+        <div class="mock-icon-glyph"></div>
+        <span>Музыка</span>
+      </div>
+    </div>
+
+    <!-- Second row of mock icons to demonstrate exact grid alignment -->
+    <div class="mock-row">
+      <div class="mock-icon">
+        <div class="mock-icon-glyph"></div>
+        <span>Часы</span>
+      </div>
+      <div class="mock-icon">
+        <div class="mock-icon-glyph"></div>
+        <span>Настройки</span>
+      </div>
+      <div class="mock-icon">
+        <div class="mock-icon-glyph"></div>
+        <span>Календарь</span>
+      </div>
+      <div class="mock-icon">
+        <div class="mock-icon-glyph"></div>
+        <span>Telegram</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Simulator Panel -->
+  <div class="sim-panel">
+    <div class="sim-header">
+      <span>Симулятор времени</span>
+      <span id="simModeTag" style="color:var(--nothing-red)">РЕАЛЬНОЕ</span>
+    </div>
+
+    <!-- Day Selector -->
+    <div class="day-chips">
+      <button class="day-chip active" onclick="setDay(1)">ПН</button>
+      <button class="day-chip" onclick="setDay(2)">ВТ</button>
+      <button class="day-chip" onclick="setDay(3)">СР</button>
+      <button class="day-chip" onclick="setDay(4)">ЧТ</button>
+      <button class="day-chip" onclick="setDay(5)">ПТ</button>
+    </div>
+
+    <!-- Quick Scenario Presets -->
+    <div class="preset-chips">
+      <button class="preset-chip active" id="btnLive" onclick="setLive()">● Сейчас</button>
+      <button class="preset-chip" onclick="setTime('08:45')">Перемена (08:45)</button>
+      <button class="preset-chip" onclick="setTime('09:15')">На уроке (09:15)</button>
+      <button class="preset-chip" onclick="setTime('09:45')">Перемена (09:45)</button>
+      <button class="preset-chip" onclick="setTime('12:45')">Перемена (12:45)</button>
+      <button class="preset-chip" onclick="setTime('15:30')">Конец дня</button>
+    </div>
+
+    <!-- Slider -->
+    <div class="slider-box">
+      <div class="slider-info">
+        <span>Время для проверки: <b id="sliderTimeText" style="color:var(--label)">09:00</b></span>
+        <span id="sliderDayText">Понедельник</span>
+      </div>
+      <input type="range" id="timeSlider" min="460" max="960" value="540" oninput="onSliderMove(this.value)">
+    </div>
+
+    <!-- Status Readout -->
+    <div class="current-status-card">
+      <span id="statusDescription">Идёт урок</span>
+      <span id="statusTimerSub" style="color:var(--nothing-red);font-weight:700;"></span>
+    </div>
+  </div>
+
+  <div class="guide-footer">
+    Строго 2 позиции (2×1) • Liquid Glass (Apple HIG + Nothing OS)<br>
+    Без лишнего текста: только Название, Кабинет и Время начала/конца.<br>
+    На перемене сразу переключается на следующий урок.
+  </div>
+
+  <script>
+    // Exact Schedule from User's Screenshots
+    const SCHEDULE = {
+      // Пн (30 ноября)
+      1: [
+        { num: 2, subject: "Физика", room: "0228", start: "09:00", end: "09:40" },
+        { num: 3, subject: "История", room: "0332", start: "10:00", end: "10:40" },
+        { num: 4, subject: "Алгебра", room: "0325", start: "11:00", end: "11:40" },
+        { num: 5, subject: "Инд. проект", room: "0105", start: "12:00", end: "12:40" },
+        { num: 6, subject: "Русский язык", room: "0235", start: "12:50", end: "13:30" },
+        { num: 7, subject: "ОБЗР", room: "0321", start: "13:40", end: "14:20" },
+        { num: 8, subject: "Геометрия", room: "0325", start: "14:40", end: "15:20" }
+      ],
+      // Вт (1 декабря)
+      2: [
+        { num: 1, subject: "Биология", room: "0220", start: "08:00", end: "08:40" },
+        { num: 2, subject: "Русский язык", room: "0235", start: "09:00", end: "09:40" },
+        { num: 3, subject: "Английский язык", room: "0110/0210", start: "10:00", end: "10:40" },
+        { num: 4, subject: "Литература", room: "0235", start: "11:00", end: "11:40" },
+        { num: 5, subject: "Обществознание", room: "0330", start: "12:00", end: "12:40" },
+        { num: 6, subject: "Геометрия", room: "0325", start: "12:50", end: "13:30" },
+        { num: 7, subject: "География", room: "0334", start: "13:40", end: "14:20" }
+      ],
+      // Ср (2 декабря)
+      3: [
+        { num: 1, subject: "Информатика", room: "0212/0313", start: "08:00", end: "08:40" },
+        { num: 2, subject: "Информатика", room: "0212/0313", start: "09:00", end: "09:40" },
+        { num: 3, subject: "Физкультура", room: "Большой зал", start: "10:00", end: "10:40" },
+        { num: 4, subject: "Обществознание", room: "0330", start: "11:00", end: "11:40" },
+        { num: 5, subject: "Вероятность и стат.", room: "0325", start: "12:00", end: "12:40" },
+        { num: 6, subject: "Алгебра", room: "0325", start: "12:50", end: "13:30" }
+      ],
+      // Чт (3 декабря)
+      4: [
+        { num: 1, subject: "Литература", room: "0235", start: "08:00", end: "08:40" },
+        { num: 2, subject: "Практ. русский", room: "0235", start: "09:00", end: "09:40" },
+        { num: 3, subject: "Физкультура", room: "Гимн. зал", start: "10:00", end: "10:40" },
+        { num: 4, subject: "Физика", room: "0228", start: "11:00", end: "11:40" },
+        { num: 5, subject: "Английский язык", room: "0110/0210", start: "12:00", end: "12:40" },
+        { num: 6, subject: "Алгебра", room: "0325", start: "12:50", end: "13:30" },
+        { num: 7, subject: "Химия", room: "0319", start: "13:40", end: "14:20" }
+      ],
+      // Пт (4 декабря)
+      5: [
+        { num: 1, subject: "Информатика", room: "0212/0313", start: "08:00", end: "08:40" },
+        { num: 2, subject: "Информатика", room: "0212/0313", start: "09:00", end: "09:40" },
+        { num: 3, subject: "Алгебра", room: "0325", start: "10:00", end: "10:40" },
+        { num: 4, subject: "История", room: "0332", start: "11:00", end: "11:40" },
+        { num: 5, subject: "Английский язык", room: "0110/0210", start: "12:00", end: "12:40" },
+        { num: 6, subject: "Геометрия", room: "0325", start: "12:50", end: "13:30" },
+        { num: 7, subject: "Литература", room: "0235", start: "13:40", end: "14:20" }
+      ]
+    };
+
+    const DAY_NAMES = {
+      1: "Понедельник", 2: "Вторник", 3: "Среда", 4: "Четверг", 5: "Пятница"
+    };
+
+    let isLive = true;
+    let currentDay = 1;
+    let simMinutes = 540; // 09:00
+
+    function parseTime(t) {
+      const [h, m] = t.split(':').map(Number);
+      return h * 60 + m;
+    }
+
+    function formatTime(m) {
+      const hh = Math.floor(m / 60).toString().padStart(2, '0');
+      const mm = (m % 60).toString().padStart(2, '0');
+      return `${hh}:${mm}`;
+    }
+
+    function computeState(minutes, day) {
+      const list = SCHEDULE[day] || SCHEDULE[1];
+      if (!list || list.length === 0) {
+        return {
+          subject: "Выходной",
+          room: "—",
+          start: "--:--",
+          end: "--:--",
+          isBreak: false,
+          desc: "Нет уроков",
+          sub: ""
+        };
+      }
+
+      const firstLesson = list[0];
+      const lastLesson = list[list.length - 1];
+      const firstStart = parseTime(firstLesson.start);
+      const lastEnd = parseTime(lastLesson.end);
+
+      // 1. Before School Starts
+      if (minutes < firstStart) {
+        const diff = firstStart - minutes;
+        return {
+          subject: firstLesson.subject,
+          room: firstLesson.room,
+          start: firstLesson.start,
+          end: firstLesson.end,
+          isBreak: true,
+          desc: `До 1-го урока (${diff} мин)`,
+          sub: `через ${diff} мин`
+        };
+      }
+
+      // 2. After School Ends
+      if (minutes >= lastEnd) {
+        // Next day 1st lesson preview
+        const nextDay = (day % 5) + 1;
+        const nextList = SCHEDULE[nextDay] || SCHEDULE[1];
+        const nextFirst = nextList[0];
+        return {
+          subject: "Уроки окончены",
+          room: nextFirst.room,
+          start: nextFirst.start,
+          end: nextFirst.end,
+          isBreak: false,
+          desc: `Завтра: ${nextFirst.subject}`,
+          sub: "отдых"
+        };
+      }
+
+      // 3. Scan lessons and breaks
+      for (let i = 0; i < list.length; i++) {
+        const cur = list[i];
+        const cStart = parseTime(cur.start);
+        const cEnd = parseTime(cur.end);
+
+        // Inside a lesson
+        if (minutes >= cStart && minutes < cEnd) {
+          const diff = cEnd - minutes;
+          return {
+            subject: cur.subject,
+            room: cur.room,
+            start: cur.start,
+            end: cur.end,
+            isBreak: false,
+            desc: `Идёт урок (до конца ${diff} мин)`,
+            sub: `${diff} мин`
+          };
+        }
+
+        // Inside a break
+        const next = list[i + 1];
+        if (next) {
+          const nStart = parseTime(next.start);
+          if (minutes >= cEnd && minutes < nStart) {
+            const diff = nStart - minutes;
+            // KEY USER REQUIREMENT:
+            // "И как только наступает перемена, должен показываться уже следующий урок.
+            // В виджете должно быть только время начала и время конца текущего урока."
+            return {
+              subject: next.subject,
+              room: next.room,
+              start: next.start,
+              end: next.end,
+              isBreak: true,
+              desc: `Перемена (до урока ${diff} мин)`,
+              sub: `след. через ${diff}м`
+            };
+          }
+        }
+      }
+
+      return {
+        subject: "—",
+        room: "—",
+        start: "--:--",
+        end: "--:--",
+        isBreak: false,
+        desc: "Перемена",
+        sub: ""
+      };
+    }
+
+    function updateWidget() {
+      const now = new Date();
+      let mins;
+      let day;
+
+      if (isLive) {
+        mins = now.getHours() * 60 + now.getMinutes();
+        let d = now.getDay();
+        if (d === 0 || d === 6) d = 1; // Default weekend to Monday
+        day = d;
+        currentDay = day;
+
+        const s = now.getSeconds().toString().padStart(2, '0');
+        document.getElementById('clockReadout').textContent = `${formatTime(mins)}:${s}`;
+      } else {
+        mins = simMinutes;
+        day = currentDay;
+        document.getElementById('clockReadout').textContent = `${formatTime(mins)} (SIM)`;
+      }
+
+      const state = computeState(mins, day);
+
+      // Update 2x1 Widget
+      document.getElementById('widgetSubject').textContent = state.subject;
+      document.getElementById('widgetRoom').textContent = state.room;
+      document.getElementById('widgetStart').textContent = state.start;
+      document.getElementById('widgetEnd').textContent = state.end;
+
+      const dot = document.getElementById('widgetDot');
+      const breakTag = document.getElementById('widgetBreakTag');
+
+      if (state.isBreak) {
+        dot.className = 'status-dot break-active';
+        breakTag.className = 'break-indicator show';
+      } else {
+        dot.className = 'status-dot';
+        breakTag.className = 'break-indicator';
+      }
+
+      // Update Status Panel
+      document.getElementById('statusDescription').textContent = state.desc;
+      document.getElementById('statusTimerSub').textContent = state.sub;
+      document.getElementById('sliderDayText').textContent = DAY_NAMES[day];
+    }
+
+    function setDay(d) {
+      currentDay = d;
+      isLive = false;
+      document.querySelectorAll('.day-chip').forEach((c, idx) => {
+        c.classList.toggle('active', (idx + 1) === d);
+      });
+      document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
+      document.getElementById('simModeTag').textContent = `СИМУЛЯЦИЯ`;
+      document.getElementById('simModeTag').style.color = '#fff';
+      updateWidget();
+    }
+
+    function setLive() {
+      isLive = true;
+      document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
+      document.getElementById('btnLive').classList.add('active');
+      document.getElementById('simModeTag').textContent = `РЕАЛЬНОЕ`;
+      document.getElementById('simModeTag').style.color = 'var(--nothing-red)';
+
+      const now = new Date();
+      let d = now.getDay();
+      if (d === 0 || d === 6) d = 1;
+      currentDay = d;
+      document.querySelectorAll('.day-chip').forEach((c, idx) => {
+        c.classList.toggle('active', (idx + 1) === d);
+      });
+
+      updateWidget();
+    }
+
+    function setTime(timeStr) {
+      isLive = false;
+      simMinutes = parseTime(timeStr);
+      document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById('timeSlider').value = simMinutes;
+      document.getElementById('sliderTimeText').textContent = timeStr;
+      document.getElementById('simModeTag').textContent = `СИМУЛЯЦИЯ (${timeStr})`;
+      document.getElementById('simModeTag').style.color = '#fff';
+      updateWidget();
+    }
+
+    function onSliderMove(val) {
+      isLive = false;
+      simMinutes = parseInt(val);
+      document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
+      document.getElementById('sliderTimeText').textContent = formatTime(simMinutes);
+      document.getElementById('simModeTag').textContent = `СИМУЛЯЦИЯ (${formatTime(simMinutes)})`;
+      document.getElementById('simModeTag').style.color = '#fff';
+      updateWidget();
+    }
+
+    setInterval(updateWidget, 1000);
+    updateWidget();
+  </script>
+</body>
+</html>
