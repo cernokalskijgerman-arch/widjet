@@ -2,15 +2,15 @@
 <html lang="ru" data-theme="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
   <title>Nothing Phone 2x1 Widget</title>
   <style>
     :root {
       --nothing-red: #D71921;
-      --glass-bg: rgba(22, 22, 26, 0.75);
-      --glass-rim-1: rgba(255, 255, 255, 0.50);
-      --glass-rim-2: rgba(255, 255, 255, 0.06);
-      --glass-rim-3: rgba(255, 255, 255, 0.22);
+      --glass-bg: rgba(20, 20, 24, 0.85);
+      --glass-rim-1: rgba(255, 255, 255, 0.55);
+      --glass-rim-2: rgba(255, 255, 255, 0.08);
+      --glass-rim-3: rgba(255, 255, 255, 0.25);
       --font-sys: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', system-ui, sans-serif;
     }
 
@@ -23,36 +23,51 @@
     }
 
     html, body {
-      width: 100%;
-      height: 100%;
+      width: 100vw;
+      height: 100vh;
+      margin: 0;
+      padding: 0;
       overflow: hidden;
       background: transparent;
       font-family: var(--font-sys);
       display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 4px;
     }
 
-    /* 2x1 Liquid Glass Card */
+    /* Aggressive blocker for third-party host banners (DropHTML badge killer) */
+    body > *:not(.widget-card),
+    [class*="drophtml"],
+    [id*="drophtml"],
+    [href*="drophtml"],
+    [style*="z-index: 2147483647"],
+    [style*="z-index: 999999"],
+    [style*="position: fixed"] {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      height: 0 !important;
+      width: 0 !important;
+      pointer-events: none !important;
+    }
+
+    /* 2x1 Full Responsive Liquid Glass Container (Edge-to-Edge) */
     .widget-card {
       width: 100%;
       height: 100%;
-      max-height: 82px;
-      border-radius: 22px;
-      padding: 8px 12px;
+      margin: 0;
+      padding: 6% 7%;
+      border-radius: 26px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       position: relative;
       isolation: isolate;
       background: var(--glass-bg);
-      -webkit-backdrop-filter: saturate(185%) blur(26px);
-      backdrop-filter: saturate(185%) blur(26px);
+      -webkit-backdrop-filter: saturate(185%) blur(24px);
+      backdrop-filter: saturate(185%) blur(24px);
       box-shadow:
-        inset 0 0.5px 0 rgba(255, 255, 255, 0.25),
-        inset 0 0 0 0.5px rgba(255, 255, 255, 0.07),
-        0 8px 24px rgba(0, 0, 0, 0.45);
+        inset 0 1px 0 rgba(255, 255, 255, 0.28),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+        0 10px 30px rgba(0, 0, 0, 0.5);
     }
 
     /* Specular Sheen (Apple Liquid Glass) */
@@ -66,8 +81,8 @@
       background: linear-gradient(
         180deg,
         rgba(255, 255, 255, 0.18) 0%,
-        rgba(255, 255, 255, 0.03) 32%,
-        transparent 65%
+        rgba(255, 255, 255, 0.03) 35%,
+        transparent 70%
       );
     }
 
@@ -78,7 +93,7 @@
       inset: 0;
       z-index: 1;
       border-radius: inherit;
-      padding: 1px;
+      padding: 1.5px;
       pointer-events: none;
       background: linear-gradient(135deg, var(--glass-rim-1) 0%, var(--glass-rim-2) 45%, var(--glass-rim-3) 100%);
       -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
@@ -91,20 +106,22 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 6px;
+      gap: 8px;
       width: 100%;
+      flex-shrink: 0;
     }
 
     .subject-wrap {
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 8px;
       min-width: 0;
+      flex: 1;
     }
 
     .status-dot {
-      width: 5px;
-      height: 5px;
+      width: clamp(8px, 3vh, 13px);
+      height: clamp(8px, 3vh, 13px);
       border-radius: 50%;
       background: rgba(255, 255, 255, 0.25);
       flex-shrink: 0;
@@ -113,7 +130,7 @@
 
     .status-dot.active-break {
       background: var(--nothing-red);
-      box-shadow: 0 0 7px var(--nothing-red);
+      box-shadow: 0 0 10px var(--nothing-red);
       animation: pulse-dot 1.8s infinite ease-in-out;
     }
 
@@ -123,24 +140,26 @@
     }
 
     .subject-title {
-      font-size: 13px;
-      font-weight: 700;
+      font-size: clamp(16px, 6.8vh, 28px);
+      font-weight: 800;
       color: #f6f6f8;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      letter-spacing: -0.01em;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
     }
 
     .room-tag {
-      font-size: 9px;
-      font-weight: 600;
-      color: #9b9ba1;
-      background: rgba(255, 255, 255, 0.08);
-      padding: 1px 5px;
-      border-radius: 5px;
+      font-size: clamp(12px, 4.5vh, 18px);
+      font-weight: 700;
+      color: #a0a0a8;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 3px 8px;
+      border-radius: 7px;
       flex-shrink: 0;
       font-variant-numeric: tabular-nums;
+      line-height: 1.2;
     }
 
     /* Bottom Row: Time Start – End */
@@ -149,32 +168,35 @@
       align-items: baseline;
       justify-content: space-between;
       width: 100%;
+      flex-shrink: 0;
     }
 
     .time-wrap {
-      font-size: 16px;
-      font-weight: 800;
+      font-size: clamp(22px, 10.5vh, 48px);
+      font-weight: 900;
       letter-spacing: -0.03em;
       font-variant-numeric: tabular-nums;
       color: #ffffff;
       display: flex;
-      align-items: center;
-      gap: 3px;
+      align-items: baseline;
+      gap: 4px;
+      line-height: 1;
     }
 
     .time-sep {
-      color: #636366;
-      font-weight: 400;
-      font-size: 12px;
+      color: #707076;
+      font-weight: 500;
+      font-size: 0.75em;
     }
 
     .break-badge {
-      font-size: 8px;
-      font-weight: 800;
-      letter-spacing: 0.08em;
+      font-size: clamp(11px, 4.5vh, 18px);
+      font-weight: 900;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--nothing-red);
       display: none;
+      line-height: 1;
     }
 
     .break-badge.show {
@@ -206,6 +228,13 @@
   </div>
 
   <script>
+    // Remove any third-party injected banners continuously
+    function cleanDOM() {
+      document.querySelectorAll('body > *:not(.widget-card)').forEach(el => el.remove());
+    }
+    cleanDOM();
+    setInterval(cleanDOM, 100);
+
     const SCHEDULE = {
       1: [ // Пн
         { subject: "Физика", room: "0228", start: "09:00", end: "09:40" },
@@ -261,7 +290,7 @@
     function tick() {
       const now = new Date();
       let d = now.getDay();
-      if (d === 0 || d === 6) d = 1; // Default weekend to Monday
+      if (d === 0 || d === 6) d = 1;
 
       const currentMins = now.getHours() * 60 + now.getMinutes();
       const dayList = SCHEDULE[d] || SCHEDULE[1];
@@ -278,14 +307,12 @@
       let isBreak = false;
 
       if (currentMins < fStart) {
-        // Before 1st lesson
         subject = first.subject;
         room = first.room;
         start = first.start;
         end = first.end;
         isBreak = true;
       } else if (currentMins >= lEnd) {
-        // After school
         const nextDay = (d % 5) + 1;
         const nextFirst = SCHEDULE[nextDay][0];
         subject = "Уроки окончены";
@@ -294,14 +321,12 @@
         end = nextFirst.end;
         isBreak = false;
       } else {
-        // Inside school hours
         for (let i = 0; i < dayList.length; i++) {
           const cur = dayList[i];
           const cStart = parseMin(cur.start);
           const cEnd = parseMin(cur.end);
 
           if (currentMins >= cStart && currentMins < cEnd) {
-            // Inside lesson
             subject = cur.subject;
             room = cur.room;
             start = cur.start;
@@ -312,7 +337,6 @@
 
           const next = dayList[i + 1];
           if (next && currentMins >= cEnd && currentMins < parseMin(next.start)) {
-            // ON BREAK: Immediately show NEXT lesson!
             subject = next.subject;
             room = next.room;
             start = next.start;
